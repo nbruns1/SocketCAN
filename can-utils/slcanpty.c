@@ -34,6 +34,7 @@
 #include <termios.h>
 
 #include <net/if.h>
+#include <linux/sockios.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
