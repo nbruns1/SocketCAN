@@ -67,8 +67,6 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 
-#include "terminal.h"
-
 #define U64_DATA(p) (*(unsigned long long*)(p)->data)
 
 #define SETFNAME "sniffset."
@@ -190,8 +188,6 @@ int main(int argc, char **argv)
 	gettimeofday(&start_tv, NULL);
 	tv.tv_sec = tv.tv_usec = 0;
 
-	printf("%s", CSR_HIDE); /* hide cursor */
-
 	while (1) {
 
 		FD_ZERO(&rdfs);
@@ -223,8 +219,6 @@ int main(int argc, char **argv)
 			lastcms = currcms;
 		}
 	}
-
-	printf("%s", CSR_SHOW); /* show cursor */
 
 	close(s);
 	return 0;
@@ -302,7 +296,6 @@ int handle_timeo(int fd, long currcms){
 
 	if (clearscreen) {
 		char startline[80];
-		printf("%s%s", CLR_SCREEN, CSR_HOME);
 		snprintf(startline, 79, "< cansniffer %s # l=%ld h=%ld t=%ld >", interface, loop, hold, timeout);
 		printf("%s%*s",STARTLINESTR, 79-(int)strlen(STARTLINESTR), startline);
 		force_redraw = 1;
@@ -314,8 +307,6 @@ int handle_timeo(int fd, long currcms){
 			U64_DATA(&sniftab[i].notch) |= U64_DATA(&sniftab[i].marker);
 		notch = 0;
 	}
-
-	printf("%s", CSR_HOME);
 
 	for (i=0; i < 2048; i++) {
 
@@ -334,8 +325,6 @@ int handle_timeo(int fd, long currcms){
 								print_snifline(i);
 								sniftab[i].hold = 0; /* disable update by hold */
 							}
-							else
-								printf("%s", CSR_DOWN); /* skip my line */
 
 						if (sniftab[i].timeout && sniftab[i].timeout < currcms) {
 							do_clr(i, DISPLAY);
