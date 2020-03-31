@@ -96,8 +96,6 @@ struct snif {
 	int flags;
 	long hold;
 	long timeout;
-	struct timeval laststamp;
-	struct timeval currstamp;
 	struct can_frame last;
 	struct can_frame current;
 	struct can_frame marker;
@@ -251,7 +249,6 @@ int handle_bcm(int fd, long currcms){
 	}
 
 	id = bmsg.msg_head.can_id;
-	ioctl(fd, SIOCGSTAMP, &sniftab[id].currstamp);
 
 	if (bmsg.msg_head.opcode != RX_CHANGED) {
 		printf("received strange BCM opcode %d!\n", bmsg.msg_head.opcode);
@@ -298,7 +295,6 @@ int handle_timeo(int fd, long currcms){
 							}
 					}
 				sniftab[i].last      = sniftab[i].current;
-				sniftab[i].laststamp = sniftab[i].currstamp;
 			}
 	}
 
