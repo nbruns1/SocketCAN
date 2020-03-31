@@ -127,7 +127,6 @@ static long loop = LOOP;
 static char *interface;
 
 void rx_setup (int fd, int id);
-void rx_delete (int fd, int id);
 void print_snifline(int id);
 int handle_bcm(int fd, long currcms);
 int handle_timeo(int fd, long currcms);
@@ -315,18 +314,6 @@ void rx_setup (int fd, int id){
 	if (write(fd, &txmsg, sizeof(txmsg)) < 0)
 		perror("write");
 };
-
-void rx_delete (int fd, int id){
-
-	struct bcm_msg_head msg_head;
-
-	msg_head.opcode  = RX_DELETE;
-	msg_head.can_id  = id;
-	msg_head.nframes = 0;
-
-	if (write(fd, &msg_head, sizeof(msg_head)) < 0)
-		perror("write");
-}
 
 int handle_bcm(int fd, long currcms){
 
