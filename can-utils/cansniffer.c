@@ -255,7 +255,6 @@ int handle_bcm(int fd, long currcms){
 int handle_timeo(int fd, long currcms){
 
 	int i;
-	int force_redraw = 0;
 
 	for (i=0; i < 2048; i++) {
 
@@ -263,7 +262,7 @@ int handle_timeo(int fd, long currcms){
 
 				if is_set(i, DISPLAY) {
 
-						if (is_set(i, UPDATE) || (force_redraw)){
+						if (is_set(i, UPDATE)){
 							print_snifline(i);
 							sniftab[i].hold = currcms + hold;
 							do_clr(i, UPDATE);
