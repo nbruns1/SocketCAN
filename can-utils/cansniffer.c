@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 	long currcms = 0;
 	long lastcms = 0;
 	unsigned char quiet = 0;
-	int opt, ret;
+	int ret;
 	struct timeval timeo, start_tv, tv;
 	struct sockaddr_can addr;
 	struct ifreq ifr;
@@ -205,47 +205,7 @@ int main(int argc, char **argv)
 
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE);
-
-	while ((opt = getopt(argc, argv, "m:v:r:t:h:l:qbBcf?")) != -1) {
-		switch (opt) {
-
-		case 'v':
-			sscanf(optarg, "%x", &value);
-			break;
-
-		case 't':
-			sscanf(optarg, "%ld", &timeout);
-			break;
-
-		case 'h':
-			sscanf(optarg, "%ld", &hold);
-			break;
-
-		case 'l':
-			sscanf(optarg, "%ld", &loop);
-			break;
-
-		case 'q':
-			quiet = 1;
-			break;
-
-		case 'c':
-			color = 1;
-			break;
-
-		case 'f':
-			filter_id_only = 1;
-			break;
-
-		case '?':
-			break;
-
-		default:
-			fprintf(stderr, "Unknown option %c\n", opt);
-			break;
-		}
-	}
-
+ 
 	if (optind == argc) {
 		print_usage(basename(argv[0]));
 		exit(0);
@@ -473,7 +433,7 @@ void print_snifline(int id){
 	long diffsec  = sniftab[id].currstamp.tv_sec  - sniftab[id].laststamp.tv_sec;
 	long diffusec = sniftab[id].currstamp.tv_usec - sniftab[id].laststamp.tv_usec;
 	int dlc_diff  = sniftab[id].last.can_dlc - sniftab[id].current.can_dlc;
-	int i,j;
+	int i;
 
 	if (diffusec < 0)
 		diffsec--, diffusec += 1000000;
