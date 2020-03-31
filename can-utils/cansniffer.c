@@ -112,7 +112,6 @@ struct snif {
 
 extern int optind, opterr, optopt;
 
-static int notch;
 static int filter_id_only;
 static long timeout = TIMEOUT;
 static long hold = HOLD;
@@ -284,12 +283,6 @@ int handle_timeo(int fd, long currcms){
 
 	int i;
 	int force_redraw = 0;
-
-	if (notch) {
-		for (i=0; i < 2048; i++)
-			U64_DATA(&sniftab[i].notch) |= U64_DATA(&sniftab[i].marker);
-		notch = 0;
-	}
 
 	for (i=0; i < 2048; i++) {
 
