@@ -96,7 +96,6 @@ struct snif {
 	long hold;
 	struct can_frame last;
 	struct can_frame current;
-	struct can_frame marker;
 } sniftab[2048];
 
 
@@ -253,8 +252,6 @@ int handle_bcm(int fd, long currcms){
 	}
 
 	sniftab[id].current = bmsg.frame;
-	U64_DATA(&sniftab[id].marker) |= 
-		U64_DATA(&sniftab[id].current) ^ U64_DATA(&sniftab[id].last);
 
 	do_set(id, DISPLAY);
 	do_set(id, UPDATE);
@@ -280,7 +277,6 @@ int handle_timeo(int fd, long currcms){
 						}
 						else
 							if ((sniftab[i].hold) && (sniftab[i].hold < currcms)) {
-								U64_DATA(&sniftab[i].marker) = (__u64) 0;
 								print_snifline(i);
 								sniftab[i].hold = 0; /* disable update by hold */
 							}
@@ -304,8 +300,5 @@ void print_snifline(int id){
 			printf("%*s", (8 - sniftab[id].current.can_dlc) * 3, "");
 
 	putchar('\n');
-
-	U64_DATA(&sniftab[id].marker) = (__u64) 0;
-
 };
 
