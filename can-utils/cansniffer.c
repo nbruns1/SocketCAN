@@ -95,9 +95,6 @@
 #define HOLD    10 /* in 100ms */
 #define LOOP     2 /* in 100ms */
 
-#define MAXANI 8
-const char anichar[MAXANI] = {'|', '/', '-', '\\', '|', '/', '-', '\\'};
-
 #define ATTCOLOR ATTBOLD FGRED
 
 #define STARTLINESTR "X  time    ID  data ... "
@@ -128,6 +125,7 @@ static char *interface;
 void rx_setup (int fd, int id);
 void print_snifline(int id);
 int handle_bcm(int fd, long currcms);
+
 int main(int argc, char **argv)
 {
 	fd_set rdfs;
@@ -318,7 +316,6 @@ int handle_timeo(int fd, long currcms){
 	}
 
 	printf("%s", CSR_HOME);
-	printf("%c\n", anichar[currcms % MAXANI]); /* funny animation */
 
 	for (i=0; i < 2048; i++) {
 
