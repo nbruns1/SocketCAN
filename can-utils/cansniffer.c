@@ -114,7 +114,6 @@ int main(int argc, char **argv)
 {
 	fd_set rdfs;
 	int s;
-	canid_t value = 0;
 	long currcms = 0;
 	long lastcms = 0;
 	int ret;
@@ -125,12 +124,6 @@ int main(int argc, char **argv)
 
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE);
-	
-	if (value) {
-		for (i=0; i < 2048 ;i++) {
-				do_clr(i, ENABLE);
-		}
-	}
 
 	if (strlen(argv[optind]) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", argv[optind]);
