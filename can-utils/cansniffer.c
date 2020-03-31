@@ -124,19 +124,14 @@ static int filter_id_only;
 static long timeout = TIMEOUT;
 static long hold = HOLD;
 static long loop = LOOP;
-static unsigned char binary;
-static unsigned char binary_gap;
 static unsigned char color;
 static char *interface;
 
 void rx_setup (int fd, int id);
 void rx_delete (int fd, int id);
 void print_snifline(int id);
-int handle_keyb(int fd);
 int handle_bcm(int fd, long currcms);
 int handle_timeo(int fd, long currcms);
-void writesettings(char* name);
-void readsettings(char* name, int sockfd);
 
 void print_usage(char *prg)
 {
@@ -169,7 +164,6 @@ void print_usage(char *prg)
 	};
 
 	fprintf(stderr, "\nUsage: %s [can-interface]\n", prg);
-	fprintf(stderr, "Options: -m <mask>  (initial FILTER default 0x00000000)\n");
 	fprintf(stderr, "         -v <value> (initial FILTER default 0x00000000)\n");
 	fprintf(stderr, "         -q         (quiet - all IDs deactivated)\n");
 	fprintf(stderr, "         -r <name>  (read %sname from file)\n", SETFNAME);
@@ -194,7 +188,6 @@ int main(int argc, char **argv)
 {
 	fd_set rdfs;
 	int s;
-	canid_t mask = 0;
 	canid_t value = 0;
 	long currcms = 0;
 	long lastcms = 0;
@@ -215,16 +208,9 @@ int main(int argc, char **argv)
 
 	while ((opt = getopt(argc, argv, "m:v:r:t:h:l:qbBcf?")) != -1) {
 		switch (opt) {
-		case 'm':
-			sscanf(optarg, "%x", &mask);
-			break;
 
 		case 'v':
 			sscanf(optarg, "%x", &value);
-			break;
-
-		case 'r':
-			readsettings(optarg, 0); /* no BCM-setting here */
 			break;
 
 		case 't':
@@ -241,16 +227,6 @@ int main(int argc, char **argv)
 
 		case 'q':
 			quiet = 1;
-			break;
-
-		case 'b':
-			binary = 1;
-			binary_gap = 0;
-			break;
-
-		case 'B':
-			binary = 1;
-			binary_gap = 1;
 			break;
 
 		case 'c':
@@ -275,11 +251,8 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 	
-	if (mask || value) {
+	if (value) {
 		for (i=0; i < 2048 ;i++) {
-			if ((i & mask) ==  (value & mask))
-				do_set(i, ENABLE);
-			else
 				do_clr(i, ENABLE);
 		}
 	}
@@ -345,9 +318,6 @@ int main(int argc, char **argv)
 		gettimeofday(&tv, NULL);
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
-		if (FD_ISSET(0, &rdfs))
-			running &= handle_keyb(s);
-
 		if (FD_ISSET(s, &rdfs))
 			running &= handle_bcm(s, currcms);
 
@@ -398,105 +368,6 @@ void rx_delete (int fd, int id){
 	if (write(fd, &msg_head, sizeof(msg_head)) < 0)
 		perror("write");
 }
-
-int handle_keyb(int fd){
-
-	char cmd [20] = {0};
-	int i;
-	unsigned int mask;
-	unsigned int value;
-
-	if (read(0, cmd, 19) > strlen("+123456\n"))
-		return 1; /* ignore */
-
-	if (strlen(cmd) > 0)
-		cmd[strlen(cmd)-1] = 0; /* chop off trailing newline */
-
-	switch (cmd[0]) {
-
-	case '+':
-	case '-':
-		sscanf(&cmd[1], "%x", &value);
-		if (strlen(&cmd[1]) > 3) {
-			mask = value & 0xFFF;
-			value >>= 12;
-		}
-		else
-			mask = 0x7FF;
-
-		if (cmd[0] == '+') {
-			for (i=0; i < 2048 ;i++) {
-				if (((i & mask) == (value & mask)) && (is_clr(i, ENABLE))) {
-					do_set(i, ENABLE);
-					rx_setup(fd, i);
-				}
-			}
-		}
-		else { /* '-' */
-			for (i=0; i < 2048 ;i++) {
-				if (((i & mask) == (value & mask)) && (is_set(i, ENABLE))) {
-					do_clr(i, ENABLE);
-					rx_delete(fd, i);
-				}
-			}
-		}
-		break;
-
-	case 'w' :
-		writesettings(&cmd[1]);
-		break;
-
-	case 'r' :
-		readsettings(&cmd[1], fd);
-		break;
-
-	case 'q' :
-		running = 0;
-		break;
-
-	case 'B' :
-		binary_gap = 1;
-		if (binary)
-			binary = 0;
-		else
-			binary = 1;
-
-		break;
-
-	case 'b' :
-		binary_gap = 0;
-		if (binary)
-			binary = 0;
-		else
-			binary = 1;
-
-		break;
-
-	case 'c' :
-		if (color)
-			color = 0;
-		else
-			color = 1;
-
-		break;
-
-	case '#' :
-		notch = 1;
-		break;
-
-	case '*' :
-		for (i=0; i < 2048; i++)
-			U64_DATA(&sniftab[i].notch) = (__u64) 0;
-		break;
-
-	default:
-		break;
-	}
-
-	clearscreen = 1;
-
-	return 1; /* ok */
-};
 
 int handle_bcm(int fd, long currcms){
 
@@ -615,38 +486,6 @@ void print_snifline(int id){
 
 	printf("%ld.%06ld  %3x  ", diffsec, diffusec, id);
 
-	if (binary) {
-
-		for (i=0; i<sniftab[id].current.can_dlc; i++) {
-			for (j=7; j>=0; j--) {
-				if ((color) && (sniftab[id].marker.data[i] & 1<<j) &&
-				    (!(sniftab[id].notch.data[i] & 1<<j)))
-					if (sniftab[id].current.data[i] & 1<<j)
-						printf("%s1%s", ATTCOLOR, ATTRESET);
-					else
-						printf("%s0%s", ATTCOLOR, ATTRESET);
-				else
-					if (sniftab[id].current.data[i] & 1<<j)
-						putchar('1');
-					else
-						putchar('0');
-			}
-			if (binary_gap)
-				putchar(' ');
-		}
-
-		/*
-		 * when the can_dlc decreased (dlc_diff > 0),
-		 * we need to blank the former data printout
-		 */
-		for (i=0; i<dlc_diff; i++) {
-			printf("        ");
-			if (binary_gap)
-				putchar(' ');
-		}
-	}
-	else {
-
 		for (i=0; i<sniftab[id].current.can_dlc; i++)
 			if ((color) && (sniftab[id].marker.data[i]) && (!(sniftab[id].notch.data[i])))
 				printf("%s%02X%s ", ATTCOLOR, sniftab[id].current.data[i], ATTRESET);
@@ -672,7 +511,6 @@ void print_snifline(int id){
 		 */
 		for (i=0; i<dlc_diff; i++)
 			putchar(' ');
-	}
 
 	putchar('\n');
 
@@ -680,82 +518,3 @@ void print_snifline(int id){
 
 };
 
-
-void writesettings(char* name){
-
-	int fd;
-	char fname[30] = SETFNAME;
-	int i,j;
-	char buf[8]= {0};
-
-	strncat(fname, name, 29 - strlen(fname)); 
-	fd = open(fname,  O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    
-	if (fd > 0) {
-
-		for (i=0; i < 2048 ;i++) {
-			sprintf(buf, "<%03X>%c.", i, (is_set(i, ENABLE))?'1':'0');
-			write(fd, buf, 7);
-			for (j=0; j<8 ; j++){
-				sprintf(buf, "%02X", sniftab[i].notch.data[j]);
-				write(fd, buf, 2);
-			}
-			write(fd, "\n", 1);
-			/* 7 + 16 + 1 = 24 bytes per entry */ 
-		}
-		close(fd);
-	}
-	else
-		printf("unable to write setting file '%s'!\n", fname);
-};
-
-void readsettings(char* name, int sockfd){
-
-	int fd;
-	char fname[30] = SETFNAME;
-	char buf[25] = {0};
-	int i,j;
-
-	strncat(fname, name, 29 - strlen(fname)); 
-	fd = open(fname, O_RDONLY);
-    
-	if (fd > 0) {
-		if (!sockfd)
-			printf("reading setting file '%s' ... ", fname);
-
-		for (i=0; i < 2048 ;i++) {
-			if (read(fd, &buf, 24) == 24) {
-				if (buf[5] & 1) {
-					if (is_clr(i, ENABLE)) {
-						do_set(i, ENABLE);
-						if (sockfd)
-							rx_setup(sockfd, i);
-					}
-				}
-				else
-					if (is_set(i, ENABLE)) {
-						do_clr(i, ENABLE);
-						if (sockfd)
-							rx_delete(sockfd, i);
-					}
-				for (j=7; j>=0 ; j--){
-					sniftab[i].notch.data[j] =
-						(__u8) strtoul(&buf[2*j+7], (char **)NULL, 16) & 0xFF;
-					buf[2*j+7] = 0; /* cut off each time */
-				}
-			}
-			else {
-				if (!sockfd)
-					printf("was only able to read until index %d from setting file '%s'!\n",
-					       i, fname);
-			}
-		}
-    
-		if (!sockfd)
-			printf("done\n");
-
-		close(fd);
-	}
-	else
-		printf("unable to read setting file '%s'!\n", fname);
-};
