@@ -112,7 +112,6 @@ struct snif {
 
 extern int optind, opterr, optopt;
 
-static int clearscreen = 1;
 static int notch;
 static int filter_id_only;
 static long timeout = TIMEOUT;
@@ -280,9 +279,6 @@ int handle_bcm(int fd, long currcms){
 		U64_DATA(&sniftab[id].current) ^ U64_DATA(&sniftab[id].last);
 	sniftab[id].timeout = (timeout)?(currcms + timeout):0;
 
-	if (is_clr(id, DISPLAY))
-		clearscreen = 1; /* new entry -> new drawing */
-
 	do_set(id, DISPLAY);
 	do_set(id, UPDATE);
 	
@@ -293,14 +289,6 @@ int handle_timeo(int fd, long currcms){
 
 	int i;
 	int force_redraw = 0;
-
-	if (clearscreen) {
-		char startline[80];
-		snprintf(startline, 79, "< cansniffer %s # l=%ld h=%ld t=%ld >", interface, loop, hold, timeout);
-		printf("%s%*s",STARTLINESTR, 79-(int)strlen(STARTLINESTR), startline);
-		force_redraw = 1;
-		clearscreen = 0;
-	}
 
 	if (notch) {
 		for (i=0; i < 2048; i++)
@@ -325,12 +313,6 @@ int handle_timeo(int fd, long currcms){
 								print_snifline(i);
 								sniftab[i].hold = 0; /* disable update by hold */
 							}
-
-						if (sniftab[i].timeout && sniftab[i].timeout < currcms) {
-							do_clr(i, DISPLAY);
-							do_clr(i, UPDATE);
-							clearscreen = 1; /* removed entry -> new drawing next time */
-						}
 					}
 				sniftab[i].last      = sniftab[i].current;
 				sniftab[i].laststamp = sniftab[i].currstamp;
