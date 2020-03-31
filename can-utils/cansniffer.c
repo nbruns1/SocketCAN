@@ -86,7 +86,6 @@
 
 /* time defaults */
 
-#define TIMEOUT 50 /* in 100ms */
 #define HOLD    10 /* in 100ms */
 #define LOOP     2 /* in 100ms */
 
@@ -95,18 +94,15 @@
 struct snif {
 	int flags;
 	long hold;
-	long timeout;
 	struct can_frame last;
 	struct can_frame current;
 	struct can_frame marker;
-	struct can_frame notch;
 } sniftab[2048];
 
 
-extern int optind, opterr, optopt;
+extern int optind;
 
 static int filter_id_only;
-static long timeout = TIMEOUT;
 static long hold = HOLD;
 static long loop = LOOP;
 static char *interface;
@@ -250,12 +246,8 @@ int handle_bcm(int fd, long currcms){
 
 	id = bmsg.msg_head.can_id;
 
-	if (bmsg.msg_head.opcode != RX_CHANGED) {
+	if ((bmsg.msg_head.opcode != RX_CHANGED) || (nbytes != sizeof(bmsg))) {
 		printf("received strange BCM opcode %d!\n", bmsg.msg_head.opcode);
-		return 0; /* quit */
-	}
-
-	if (nbytes != sizeof(bmsg)) {
 		printf("received strange BCM data length %d!\n", nbytes);
 		return 0; /* quit */
 	}
@@ -263,7 +255,6 @@ int handle_bcm(int fd, long currcms){
 	sniftab[id].current = bmsg.frame;
 	U64_DATA(&sniftab[id].marker) |= 
 		U64_DATA(&sniftab[id].current) ^ U64_DATA(&sniftab[id].last);
-	sniftab[id].timeout = (timeout)?(currcms + timeout):0;
 
 	do_set(id, DISPLAY);
 	do_set(id, UPDATE);
@@ -304,7 +295,6 @@ int handle_timeo(int fd, long currcms){
 
 void print_snifline(int id){
 
-	int dlc_diff  = sniftab[id].last.can_dlc - sniftab[id].current.can_dlc;
 	int i;
 
 		for (i=0; i<sniftab[id].current.can_dlc; i++)
@@ -312,13 +302,6 @@ void print_snifline(int id){
 
 		if (sniftab[id].current.can_dlc < 8)
 			printf("%*s", (8 - sniftab[id].current.can_dlc) * 3, "");
-
-		/*
-		 * when the can_dlc decreased (dlc_diff > 0),
-		 * we need to blank the former data printout
-		 */
-		for (i=0; i<dlc_diff; i++)
-			putchar(' ');
 
 	putchar('\n');
 
