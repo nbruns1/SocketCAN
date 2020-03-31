@@ -130,7 +130,6 @@ int main(int argc, char **argv)
 	canid_t value = 0;
 	long currcms = 0;
 	long lastcms = 0;
-	unsigned char quiet = 0;
 	int ret;
 	struct timeval timeo, start_tv, tv;
 	struct sockaddr_can addr;
@@ -145,10 +144,6 @@ int main(int argc, char **argv)
 				do_clr(i, ENABLE);
 		}
 	}
-
-	if (quiet)
-		for (i=0; i < 2048 ;i++)
-			do_clr(i, ENABLE);
 
 	if (strlen(argv[optind]) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", argv[optind]);
