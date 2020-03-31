@@ -69,7 +69,6 @@
 
 #define U64_DATA(p) (*(unsigned long long*)(p)->data)
 
-#define SETFNAME "sniffset."
 #define ANYDEV   "any"
 
 /* flags */
@@ -77,12 +76,10 @@
 #define ENABLE  1 /* by filter or user */
 #define DISPLAY 2 /* is on the screen */
 #define UPDATE  4 /* needs to be printed on the screen */
-#define CLRSCR  8 /* clear screen in next loop */
 
 /* flags testing & setting */
 
 #define is_set(id, flag) (sniftab[id].flags & flag)
-#define is_clr(id, flag) (!(sniftab[id].flags & flag))
 
 #define do_set(id, flag) (sniftab[id].flags |= flag)
 #define do_clr(id, flag) (sniftab[id].flags &= ~flag)
@@ -92,8 +89,6 @@
 #define TIMEOUT 50 /* in 100ms */
 #define HOLD    10 /* in 100ms */
 #define LOOP     2 /* in 100ms */
-
-#define ATTCOLOR ATTBOLD FGRED
 
 #define STARTLINESTR "X  time    ID  data ... "
 
