@@ -117,7 +117,6 @@ struct snif {
 
 extern int optind, opterr, optopt;
 
-static int running = 1;
 static int clearscreen = 1;
 static int notch;
 static int filter_id_only;
@@ -129,59 +128,6 @@ static char *interface;
 void rx_setup (int fd, int id);
 void print_snifline(int id);
 int handle_bcm(int fd, long currcms);
-int handle_timeo(int fd, long currcms);
-
-void print_usage(char *prg)
-{
-	const char manual [] = {
-		"commands that can be entered at runtime:\n"
-		"\n"
-		"q<ENTER>       - quit\n"
-		"b<ENTER>       - toggle binary / HEX-ASCII output\n"
-		"B<ENTER>       - toggle binary with gap / HEX-ASCII output (exceeds 80 chars!)\n"
-		"c<ENTER>       - toggle color mode\n"
-		"#<ENTER>       - notch currently marked/changed bits (can be used repeatedly)\n"
-		"*<ENTER>       - clear notched marked\n"
-		"rMYNAME<ENTER> - read settings file (filter/notch)\n"
-		"wMYNAME<ENTER> - write settings file (filter/notch)\n"
-		"+FILTER<ENTER> - add CAN-IDs to sniff\n"
-		"-FILTER<ENTER> - remove CAN-IDs to sniff\n"
-		"\n"
-		"FILTER can be a single CAN-ID or a CAN-ID/Bitmask:\n"
-		"+1F5<ENTER>    - add CAN-ID 0x1F5\n"
-		"-42E<ENTER>    - remove CAN-ID 0x42E\n"
-		"-42E7FF<ENTER> - remove CAN-ID 0x42E (using Bitmask)\n"
-		"-500700<ENTER> - remove CAN-IDs 0x500 - 0x5FF\n"
-		"+400600<ENTER> - add CAN-IDs 0x400 - 0x5FF\n"
-		"+000000<ENTER> - add all CAN-IDs\n"
-		"-000000<ENTER> - remove all CAN-IDs\n"
-		"\n"
-		"if (id & filter) == (sniff-id & filter) the action (+/-) is performed,\n"
-		"which is quite easy when the filter is 000\n"
-		"\n"
-	};
-
-	fprintf(stderr, "\nUsage: %s [can-interface]\n", prg);
-	fprintf(stderr, "         -v <value> (initial FILTER default 0x00000000)\n");
-	fprintf(stderr, "         -q         (quiet - all IDs deactivated)\n");
-	fprintf(stderr, "         -r <name>  (read %sname from file)\n", SETFNAME);
-	fprintf(stderr, "         -b         (start with binary mode)\n");
-	fprintf(stderr, "         -B         (start with binary mode with gap - exceeds 80 chars!)\n");
-	fprintf(stderr, "         -c         (color changes)\n");
-	fprintf(stderr, "         -f         (filter on CAN-ID only)\n");
-	fprintf(stderr, "         -t <time>  (timeout for ID display [x100ms] default: %d, 0 = OFF)\n", TIMEOUT);
-	fprintf(stderr, "         -h <time>  (hold marker on changes [x100ms] default: %d)\n", HOLD);
-	fprintf(stderr, "         -l <time>  (loop time (display) [x100ms] default: %d)\n", LOOP);
-	fprintf(stderr, "Use interface name '%s' to receive from all can-interfaces\n", ANYDEV);
-	fprintf(stderr, "\n");
-	fprintf(stderr, "%s", manual);
-}
-
-void sigterm(int signo)
-{
-	running = 0;
-}
-
 int main(int argc, char **argv)
 {
 	fd_set rdfs;
@@ -196,18 +142,8 @@ int main(int argc, char **argv)
 	struct ifreq ifr;
 	int i;
 
-
-	signal(SIGTERM, sigterm);
-	signal(SIGHUP, sigterm);
-	signal(SIGINT, sigterm);
-
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE);
- 
-	if (optind == argc) {
-		print_usage(basename(argv[0]));
-		exit(0);
-	}
 	
 	if (value) {
 		for (i=0; i < 2048 ;i++) {
@@ -258,7 +194,7 @@ int main(int argc, char **argv)
 
 	printf("%s", CSR_HIDE); /* hide cursor */
 
-	while (running) {
+	while (1) {
 
 		FD_ZERO(&rdfs);
 		FD_SET(0, &rdfs);
@@ -269,18 +205,23 @@ int main(int argc, char **argv)
 
 		if ((ret = select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
 			//perror("select");
-			running = 0;
-			continue;
+			exit(-1);
 		}
 
 		gettimeofday(&tv, NULL);
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
-			running &= handle_bcm(s, currcms);
+			if(!handle_bcm(s, currcms))
+			{
+			exit(-1);
+			}
 
 		if (currcms - lastcms >= loop) {
-			running &= handle_timeo(s, currcms);
+			if(!handle_timeo(s, currcms))
+			{
+			exit(-1);
+			}
 			lastcms = currcms;
 		}
 	}
