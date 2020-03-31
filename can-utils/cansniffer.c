@@ -308,34 +308,14 @@ int handle_timeo(int fd, long currcms){
 
 void print_snifline(int id){
 
-	long diffsec  = sniftab[id].currstamp.tv_sec  - sniftab[id].laststamp.tv_sec;
-	long diffusec = sniftab[id].currstamp.tv_usec - sniftab[id].laststamp.tv_usec;
 	int dlc_diff  = sniftab[id].last.can_dlc - sniftab[id].current.can_dlc;
 	int i;
-
-	if (diffusec < 0)
-		diffsec--, diffusec += 1000000;
-
-	if (diffsec < 0)
-		diffsec = diffusec = 0;
-
-	if (diffsec > 10)
-		diffsec = 9, diffusec = 999999;
-
-	printf("%ld.%06ld  %3x  ", diffsec, diffusec, id);
 
 		for (i=0; i<sniftab[id].current.can_dlc; i++)
 			printf("%02X ", sniftab[id].current.data[i]);
 
 		if (sniftab[id].current.can_dlc < 8)
 			printf("%*s", (8 - sniftab[id].current.can_dlc) * 3, "");
-
-		for (i=0; i<sniftab[id].current.can_dlc; i++)
-			if ((sniftab[id].current.data[i] > 0x1F) && 
-			    (sniftab[id].current.data[i] < 0x7F))
-				putchar(sniftab[id].current.data[i]);
-			else
-				putchar('.');
 
 		/*
 		 * when the can_dlc decreased (dlc_diff > 0),
