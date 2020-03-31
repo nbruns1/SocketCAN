@@ -124,7 +124,6 @@ static int filter_id_only;
 static long timeout = TIMEOUT;
 static long hold = HOLD;
 static long loop = LOOP;
-static unsigned char color;
 static char *interface;
 
 void rx_setup (int fd, int id);
@@ -447,10 +446,7 @@ void print_snifline(int id){
 	printf("%ld.%06ld  %3x  ", diffsec, diffusec, id);
 
 		for (i=0; i<sniftab[id].current.can_dlc; i++)
-			if ((color) && (sniftab[id].marker.data[i]) && (!(sniftab[id].notch.data[i])))
-				printf("%s%02X%s ", ATTCOLOR, sniftab[id].current.data[i], ATTRESET);
-			else
-				printf("%02X ", sniftab[id].current.data[i]);
+			printf("%02X ", sniftab[id].current.data[i]);
 
 		if (sniftab[id].current.can_dlc < 8)
 			printf("%*s", (8 - sniftab[id].current.can_dlc) * 3, "");
@@ -458,10 +454,7 @@ void print_snifline(int id){
 		for (i=0; i<sniftab[id].current.can_dlc; i++)
 			if ((sniftab[id].current.data[i] > 0x1F) && 
 			    (sniftab[id].current.data[i] < 0x7F))
-				if ((color) && (sniftab[id].marker.data[i]) && (!(sniftab[id].notch.data[i])))
-					printf("%s%c%s", ATTCOLOR, sniftab[id].current.data[i], ATTRESET);
-				else
-					putchar(sniftab[id].current.data[i]);
+				putchar(sniftab[id].current.data[i]);
 			else
 				putchar('.');
 
