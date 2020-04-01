@@ -76,7 +76,6 @@
 
 struct snif {
 	int flags;
-	struct can_frame last;
 	struct can_frame current;
 };
 
@@ -247,7 +246,6 @@ int handle_timeo(int fd, struct snif *sniftab){
 							do_clr(i, UPDATE, sniftab);
 						}
 					}
-				sniftab[i].last      = sniftab[i].current;
 			}
 	}
 
