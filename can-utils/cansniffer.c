@@ -187,7 +187,7 @@ int main()
 			}
 
 		if (currcms - lastcms >= loop) {
-			if(!handle_timeo(s, currcms))
+			if(!handle_timeo(s, currcms, sniftab2))
 			{
 			exit(-1);
 			}
@@ -253,7 +253,7 @@ int handle_bcm(int fd, long currcms){
 	return 1; /* ok */
 };
 
-int handle_timeo(int fd, long currcms){
+int handle_timeo(int fd, long currcms, struct snif *sniftab){
 
 	int i;
 
@@ -264,17 +264,17 @@ int handle_timeo(int fd, long currcms){
 				if is_set(i, DISPLAY) {
 
 						if (is_set(i, UPDATE)){
-							print_snifline(i, sniftab2);
-							sniftab2[i].hold = currcms + hold;
+							print_snifline(i, sniftab);
+							sniftab[i].hold = currcms + hold;
 							do_clr(i, UPDATE);
 						}
 						else
-							if ((sniftab2[i].hold) && (sniftab2[i].hold < currcms)) {
-								print_snifline(i, sniftab2);
-								sniftab2[i].hold = 0; /* disable update by hold */
+							if ((sniftab[i].hold) && (sniftab[i].hold < currcms)) {
+								print_snifline(i, sniftab);
+								sniftab[i].hold = 0; /* disable update by hold */
 							}
 					}
-				sniftab2[i].last      = sniftab2[i].current;
+				sniftab[i].last      = sniftab[i].current;
 			}
 	}
 
