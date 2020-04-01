@@ -74,10 +74,6 @@
 #define do_set(id, flag, sniftab) (sniftab[id].flags |= flag)
 #define do_clr(id, flag, sniftab) (sniftab[id].flags &= ~flag)
 
-/* time defaults */
-
-#define STARTLINESTR "X  time    ID  data ... "
-
 struct snif {
 	int flags;
 	struct can_frame last;
