@@ -158,7 +158,7 @@ int main()
 	}
 
 	for (i=0; i < 2048 ;i++) /* initial BCM setup */
-		if (is_set(i, ENABLE, sniftab2))
+		if (is_set(i, ENABLE, sniftab))
 			rx_setup(s, i);
 
 	gettimeofday(&start_tv, NULL);
