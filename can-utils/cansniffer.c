@@ -65,7 +65,6 @@
 
 #define ENABLE  1 /* by filter or user */
 #define DISPLAY 2 /* is on the screen */
-#define UPDATE  4 /* needs to be printed on the screen */
 
 /* flags testing & setting */
 
@@ -226,9 +225,7 @@ int handle_bcm(int fd, struct snif *sniftab){
 	}
 
 	sniftab[id].current = bmsg.frame;
-
 	do_set(id, DISPLAY, sniftab);
-	do_set(id, UPDATE, sniftab);
 	
 	return 1; /* ok */
 };
@@ -238,13 +235,9 @@ int handle_timeo(int fd, struct snif *sniftab){
 	for (int i=0; i < 2048; i++) {
 
 		if is_set(i, ENABLE, sniftab) {
-
 				if is_set(i, DISPLAY, sniftab) {
-
-						if (is_set(i, UPDATE, sniftab)){
 							print_snifline(i, sniftab);
-							do_clr(i, UPDATE, sniftab);
-						}
+							do_clr(i, DISPLAY, sniftab);
 					}
 			}
 	}
