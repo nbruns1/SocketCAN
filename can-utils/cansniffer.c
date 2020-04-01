@@ -99,9 +99,7 @@ struct snif {
 };
 
 
-extern int optind;
-
-static int filter_id_only;
+//static int filter_id_only;
 static long hold = HOLD;
 static long loop = LOOP;
 static char *interface;
