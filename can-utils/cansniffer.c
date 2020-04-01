@@ -110,8 +110,9 @@ void rx_setup (int fd, int id);
 void print_snifline(int id);
 int handle_bcm(int fd, long currcms);
 
-int main(int argc, char **argv)
+int main()
 {
+	char *device_name = "vcan0";
 	fd_set rdfs;
 	int s;
 	long currcms = 0;
@@ -125,12 +126,12 @@ int main(int argc, char **argv)
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE);
 
-	if (strlen(argv[optind]) >= IFNAMSIZ) {
-		printf("name of CAN device '%s' is too long!\n", argv[optind]);
+	if (strlen(device_name) >= IFNAMSIZ) {
+		printf("name of CAN device '%s' is too long!\n", device_name);
 		return 1;
 	}
 
-	interface = argv[optind];
+	interface = device_name;
 
 	if ((s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
 		perror("socket");
@@ -139,8 +140,8 @@ int main(int argc, char **argv)
 
 	addr.can_family = AF_CAN;
 
-	if (strcmp(ANYDEV, argv[optind])) {
-		strcpy(ifr.ifr_name, argv[optind]);
+	if (strcmp(ANYDEV, device_name)) {
+		strcpy(ifr.ifr_name, device_name);
 		if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
 			perror("SIOCGIFINDEX");
 			exit(1);
