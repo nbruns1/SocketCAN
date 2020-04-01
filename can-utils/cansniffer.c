@@ -108,12 +108,10 @@ int main()
 	long loop = 2;
 	int s;
 	
-	
 	struct sockaddr_can addr;
 	struct ifreq ifr;
-	int i;
 
-	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
+	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE, sniftab);
 
 	if (strlen(interface) >= IFNAMSIZ) {
@@ -144,7 +142,7 @@ int main()
 		return 1;
 	}
 
-	for (i=0; i < 2048 ;i++) /* initial BCM setup */
+	for (int i=0; i < 2048 ;i++) /* initial BCM setup */
 		if (is_set(i, ENABLE, sniftab))
 			rx_setup(s, i, filter_id_only);
 
@@ -252,9 +250,7 @@ int handle_bcm(int fd, struct snif *sniftab){
 
 int handle_timeo(int fd, struct snif *sniftab){
 
-	int i;
-
-	for (i=0; i < 2048; i++) {
+	for (int i=0; i < 2048; i++) {
 
 		if is_set(i, ENABLE, sniftab) {
 
@@ -274,10 +270,7 @@ int handle_timeo(int fd, struct snif *sniftab){
 };
 
 void print_snifline(int id, struct snif *sniftab){
-
-	int i;
-
-		for (i=0; i<sniftab[id].current.can_dlc; i++)
+		for (int i=0; i<sniftab[id].current.can_dlc; i++)
 			printf("%02X ", sniftab[id].current.data[i]);
 
 		if (sniftab[id].current.can_dlc < 8)
