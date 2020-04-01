@@ -79,10 +79,10 @@
 
 /* flags testing & setting */
 
-#define is_set(id, flag) (sniftab[id].flags & flag)
+#define is_set(id, flag) (sniftab2[id].flags & flag)
 
-#define do_set(id, flag) (sniftab[id].flags |= flag)
-#define do_clr(id, flag) (sniftab[id].flags &= ~flag)
+#define do_set(id, flag) (sniftab2[id].flags |= flag)
+#define do_clr(id, flag) (sniftab2[id].flags &= ~flag)
 
 /* time defaults */
 
@@ -96,7 +96,7 @@ struct snif {
 	long hold;
 	struct can_frame last;
 	struct can_frame current;
-} sniftab[2048];
+} sniftab2[2048];
 
 
 extern int optind;
@@ -107,7 +107,7 @@ static long loop = LOOP;
 static char *interface;
 
 void rx_setup (int fd, int id);
-void print_snifline(int id);
+void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, long currcms);
 
 int main()
@@ -245,7 +245,7 @@ int handle_bcm(int fd, long currcms){
 		return 0; /* quit */
 	}
 
-	sniftab[id].current = bmsg.frame;
+	sniftab2[id].current = bmsg.frame;
 
 	do_set(id, DISPLAY);
 	do_set(id, UPDATE);
@@ -264,17 +264,17 @@ int handle_timeo(int fd, long currcms){
 				if is_set(i, DISPLAY) {
 
 						if (is_set(i, UPDATE)){
-							print_snifline(i);
-							sniftab[i].hold = currcms + hold;
+							print_snifline(i, sniftab2);
+							sniftab2[i].hold = currcms + hold;
 							do_clr(i, UPDATE);
 						}
 						else
-							if ((sniftab[i].hold) && (sniftab[i].hold < currcms)) {
-								print_snifline(i);
-								sniftab[i].hold = 0; /* disable update by hold */
+							if ((sniftab2[i].hold) && (sniftab2[i].hold < currcms)) {
+								print_snifline(i, sniftab2);
+								sniftab2[i].hold = 0; /* disable update by hold */
 							}
 					}
-				sniftab[i].last      = sniftab[i].current;
+				sniftab2[i].last      = sniftab2[i].current;
 			}
 	}
 
@@ -282,7 +282,7 @@ int handle_timeo(int fd, long currcms){
 
 };
 
-void print_snifline(int id){
+void print_snifline(int id, struct snif *sniftab){
 
 	int i;
 
