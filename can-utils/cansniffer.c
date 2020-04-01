@@ -177,10 +177,12 @@ int recv_loop(int s, long loop, struct snif *sniftab)
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
+		{
 			if(!handle_bcm(s, sniftab))
 			{
 			exit(-1);
 			}
+		}
 
 		if (currcms - lastcms >= loop) {
 			if(!handle_timeo(s, sniftab))
