@@ -97,7 +97,7 @@ struct snif {
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, struct snif *sniftab);
-int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv);
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms);
 
 int main()
 {
@@ -148,18 +148,19 @@ int main()
 
 	struct timeval start_tv;
 	gettimeofday(&start_tv, NULL);
-	recv_loop(s,loop, sniftab, start_tv);
+	struct timeval tv;
+	tv.tv_sec = tv.tv_usec = 0;
+	long lastcms = 0;
+	recv_loop(s,loop, sniftab, start_tv, tv, &lastcms);
 	return 0;
 }
 
-int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv)
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms)
 {
 	fd_set rdfs;
-	struct timeval timeo, tv;
-	tv.tv_sec = tv.tv_usec = 0;
-
+	struct timeval timeo;
+	
 	long currcms = 0;
-	long lastcms = 0;
 	while (1) {
 
 		FD_ZERO(&rdfs);
@@ -172,13 +173,13 @@ int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv)
 		if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {return -1;}
 
 		gettimeofday(&tv, NULL);
-		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
+		long currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if(FD_ISSET(s, &rdfs) && !handle_bcm(s, sniftab)){return -1;}
 
-		if (currcms - lastcms >= loop) {
+		if (currcms - *lastcms >= loop) {
 			if(!handle_timeo(s, sniftab)){return -1;}
-			lastcms = currcms;
+			*lastcms = currcms;
 		}
 	}
 
