@@ -86,8 +86,6 @@
 
 /* time defaults */
 
-#define LOOP     2 /* in 100ms */
-
 #define STARTLINESTR "X  time    ID  data ... "
 
 struct snif {
@@ -106,6 +104,7 @@ int main()
 	struct snif sniftab[2048];
 	memset(&sniftab,0x00,sizeof(sniftab));
 	int filter_id_only = 0;
+	long loop = 2;
 	fd_set rdfs;
 	int s;
 	int ret;
@@ -162,7 +161,7 @@ int main()
 		FD_SET(s, &rdfs);
 
 		timeo.tv_sec  = 0;
-		timeo.tv_usec = 100000 * LOOP;
+		timeo.tv_usec = 100000 * loop;
 
 		if ((ret = select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
 			//perror("select");
@@ -178,7 +177,7 @@ int main()
 			exit(-1);
 			}
 
-		if (currcms - lastcms >= LOOP) {
+		if (currcms - lastcms >= loop) {
 			if(!handle_timeo(s, sniftab))
 			{
 			exit(-1);
