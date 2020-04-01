@@ -98,6 +98,7 @@ void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, struct snif *sniftab);
 int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms);
+int init(struct snif *sniftab, char* interface, int *s, int filter_id_only);
 
 int main()
 {
@@ -108,11 +109,7 @@ int main()
 	long loop = 2;
 	int s;
 
-	if(init(sniftab,interface,&s)){return 1;}
-
-	for (int i=0; i < 2048 ;i++) /* initial BCM setup */
-		if (is_set(i, ENABLE, sniftab))
-			rx_setup(s, i, filter_id_only);
+	if(init(sniftab,interface,&s,filter_id_only)){return 1;}
 
 	struct timeval start_tv;
 	gettimeofday(&start_tv, NULL);
@@ -124,7 +121,7 @@ int main()
 	return 0;
 }
 
-int init(struct snif *sniftab, char* interface, int *s)
+int init(struct snif *sniftab, char* interface, int *s, int filter_id_only)
 {
 	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 	{
@@ -160,6 +157,10 @@ int init(struct snif *sniftab, char* interface, int *s)
 		perror("connect");
 		return 1;
 	}
+
+	for (int i=0; i < 2048 ;i++) /* initial BCM setup */
+		if (is_set(i, ENABLE, sniftab))
+			rx_setup(*s, i, filter_id_only);
 	return 0;
 }
 
