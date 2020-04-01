@@ -86,7 +86,6 @@
 
 /* time defaults */
 
-#define HOLD    10 /* in 100ms */
 #define LOOP     2 /* in 100ms */
 
 #define STARTLINESTR "X  time    ID  data ... "
@@ -99,22 +98,18 @@ struct snif {
 
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
-int handle_bcm(int fd, long currcms, struct snif *sniftab);
+int handle_bcm(int fd, struct snif *sniftab);
 
 int main()
 {
 	char *interface = "vcan0";
 	struct snif sniftab[2048];
 	memset(&sniftab,0x00,sizeof(sniftab));
-
 	int filter_id_only = 0;
-
 	fd_set rdfs;
 	int s;
-	long currcms = 0;
-	long lastcms = 0;
 	int ret;
-	struct timeval timeo, start_tv, tv;
+	
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	int i;
@@ -154,9 +149,12 @@ int main()
 		if (is_set(i, ENABLE, sniftab))
 			rx_setup(s, i, filter_id_only);
 
+	struct timeval timeo, start_tv, tv;
 	gettimeofday(&start_tv, NULL);
 	tv.tv_sec = tv.tv_usec = 0;
 
+	long currcms = 0;
+	long lastcms = 0;
 	while (1) {
 
 		FD_ZERO(&rdfs);
@@ -175,13 +173,13 @@ int main()
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
-			if(!handle_bcm(s, currcms, sniftab))
+			if(!handle_bcm(s, sniftab))
 			{
 			exit(-1);
 			}
 
 		if (currcms - lastcms >= LOOP) {
-			if(!handle_timeo(s, currcms, sniftab))
+			if(!handle_timeo(s, sniftab))
 			{
 			exit(-1);
 			}
@@ -217,7 +215,7 @@ void rx_setup (int fd, int id, int filter_id_only){
 		perror("write");
 };
 
-int handle_bcm(int fd, long currcms, struct snif *sniftab){
+int handle_bcm(int fd, struct snif *sniftab){
 
 	int nbytes, id;
 
@@ -247,7 +245,7 @@ int handle_bcm(int fd, long currcms, struct snif *sniftab){
 	return 1; /* ok */
 };
 
-int handle_timeo(int fd, long currcms, struct snif *sniftab){
+int handle_timeo(int fd, struct snif *sniftab){
 
 	int i;
 
