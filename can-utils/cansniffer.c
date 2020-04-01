@@ -97,6 +97,7 @@ struct snif {
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, struct snif *sniftab);
+int handle_timeo(int fd, struct snif *sniftab);
 int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms);
 int init(struct snif *sniftab, char* interface, int *s, int filter_id_only);
 
@@ -105,6 +106,7 @@ int main()
 	char *interface = "vcan0";
 	struct snif sniftab[2048];
 	memset(&sniftab,0x00,sizeof(sniftab));
+
 	int filter_id_only = 0;
 	long loop = 2;
 	int s;
@@ -113,9 +115,11 @@ int main()
 
 	struct timeval start_tv;
 	gettimeofday(&start_tv, NULL);
+
 	struct timeval tv;
 	tv.tv_sec = tv.tv_usec = 0;
 	long lastcms = 0;
+
 	while(!recv_loop(s,loop, sniftab, start_tv, tv, &lastcms));
 	close(s);
 	return 0;
