@@ -93,7 +93,6 @@
 
 struct snif {
 	int flags;
-	long hold;
 	struct can_frame last;
 	struct can_frame current;
 };
@@ -260,14 +259,8 @@ int handle_timeo(int fd, long currcms, struct snif *sniftab){
 
 						if (is_set(i, UPDATE, sniftab)){
 							print_snifline(i, sniftab);
-							sniftab[i].hold = currcms + HOLD;
 							do_clr(i, UPDATE, sniftab);
 						}
-						else
-							if ((sniftab[i].hold) && (sniftab[i].hold < currcms)) {
-								print_snifline(i, sniftab);
-								sniftab[i].hold = 0; /* disable update by hold */
-							}
 					}
 				sniftab[i].last      = sniftab[i].current;
 			}
