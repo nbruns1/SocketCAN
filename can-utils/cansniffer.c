@@ -49,19 +49,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <ctype.h>
-#include <libgen.h>
-#include <time.h>
 
 #include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <linux/sockios.h>
 #include <sys/ioctl.h>
-#include <sys/uio.h>
 #include <net/if.h>
 
 #include <linux/can.h>
