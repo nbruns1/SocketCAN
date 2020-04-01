@@ -160,7 +160,6 @@ int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, s
 	fd_set rdfs;
 	struct timeval timeo;
 	
-	long currcms = 0;
 	while (1) {
 
 		FD_ZERO(&rdfs);
