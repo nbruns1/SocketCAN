@@ -113,6 +113,7 @@ int handle_bcm(int fd, long currcms, struct snif *sniftab);
 int main()
 {
 	char *device_name = "vcan0";
+	struct snif *sniftab = sniftab2;
 	fd_set rdfs;
 	int s;
 	long currcms = 0;
@@ -124,7 +125,7 @@ int main()
 	int i;
 
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
-		do_set(i, ENABLE, sniftab2);
+		do_set(i, ENABLE, sniftab);
 
 	if (strlen(device_name) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", device_name);
