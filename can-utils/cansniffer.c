@@ -96,7 +96,7 @@ struct snif {
 	long hold;
 	struct can_frame last;
 	struct can_frame current;
-} sniftab2[2048];
+};
 
 
 extern int optind;
@@ -113,7 +113,8 @@ int handle_bcm(int fd, long currcms, struct snif *sniftab);
 int main()
 {
 	char *device_name = "vcan0";
-	struct snif *sniftab = sniftab2;
+	struct snif sniftab[2048];
+	memset(&sniftab,0x00,sizeof(sniftab));
 	fd_set rdfs;
 	int s;
 	long currcms = 0;
