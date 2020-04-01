@@ -234,12 +234,10 @@ int handle_timeo(int fd, struct snif *sniftab){
 
 	for (int i=0; i < 2048; i++) {
 
-		if is_set(i, ENABLE, sniftab) {
-				if is_set(i, DISPLAY, sniftab) {
-							print_snifline(i, sniftab);
-							do_clr(i, DISPLAY, sniftab);
-					}
-			}
+		if (is_set(i, ENABLE, sniftab) && is_set(i, DISPLAY, sniftab)) {
+			print_snifline(i, sniftab);
+			do_clr(i, DISPLAY, sniftab);
+		}
 	}
 
 	return 1; /* ok */
