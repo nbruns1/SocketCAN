@@ -182,7 +182,7 @@ int main()
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
-			if(!handle_bcm(s, currcms, sniftab2))
+			if(!handle_bcm(s, currcms, sniftab))
 			{
 			exit(-1);
 			}
