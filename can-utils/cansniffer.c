@@ -111,8 +111,7 @@ int main()
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 
-	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
-		do_set(i, ENABLE, sniftab);
+	if(init(sniftab,interface)){return 1;}
 
 	if (strlen(interface) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", interface);
@@ -153,6 +152,15 @@ int main()
 	long lastcms = 0;
 	while(!recv_loop(s,loop, sniftab, start_tv, tv, &lastcms));
 	close(s);
+	return 0;
+}
+
+int init(struct snif *sniftab, char* interface)
+{
+	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
+	{
+		do_set(i, ENABLE, sniftab);
+	}
 	return 0;
 }
 
