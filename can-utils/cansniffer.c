@@ -81,7 +81,7 @@
 
 #define is_set(id, flag, sniftab) (sniftab[id].flags & flag)
 
-#define do_set(id, flag) (sniftab2[id].flags |= flag)
+#define do_set(id, flag, sniftab) (sniftab[id].flags |= flag)
 #define do_clr(id, flag) (sniftab2[id].flags &= ~flag)
 
 /* time defaults */
@@ -124,7 +124,7 @@ int main()
 	int i;
 
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
-		do_set(i, ENABLE);
+		do_set(i, ENABLE, sniftab2);
 
 	if (strlen(device_name) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", device_name);
@@ -247,8 +247,8 @@ int handle_bcm(int fd, long currcms, struct snif *sniftab){
 
 	sniftab[id].current = bmsg.frame;
 
-	do_set(id, DISPLAY);
-	do_set(id, UPDATE);
+	do_set(id, DISPLAY, sniftab);
+	do_set(id, UPDATE, sniftab);
 	
 	return 1; /* ok */
 };
