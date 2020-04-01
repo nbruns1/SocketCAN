@@ -79,7 +79,7 @@
 
 /* flags testing & setting */
 
-#define is_set(id, flag) (sniftab2[id].flags & flag)
+#define is_set(id, flag, sniftab) (sniftab[id].flags & flag)
 
 #define do_set(id, flag) (sniftab2[id].flags |= flag)
 #define do_clr(id, flag) (sniftab2[id].flags &= ~flag)
@@ -157,7 +157,7 @@ int main()
 	}
 
 	for (i=0; i < 2048 ;i++) /* initial BCM setup */
-		if (is_set(i, ENABLE))
+		if (is_set(i, ENABLE, sniftab2))
 			rx_setup(s, i);
 
 	gettimeofday(&start_tv, NULL);
@@ -259,11 +259,11 @@ int handle_timeo(int fd, long currcms, struct snif *sniftab){
 
 	for (i=0; i < 2048; i++) {
 
-		if is_set(i, ENABLE) {
+		if is_set(i, ENABLE, sniftab) {
 
-				if is_set(i, DISPLAY) {
+				if is_set(i, DISPLAY, sniftab) {
 
-						if (is_set(i, UPDATE)){
+						if (is_set(i, UPDATE, sniftab)){
 							print_snifline(i, sniftab);
 							sniftab[i].hold = currcms + hold;
 							do_clr(i, UPDATE);
