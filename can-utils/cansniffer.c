@@ -82,7 +82,7 @@
 #define is_set(id, flag, sniftab) (sniftab[id].flags & flag)
 
 #define do_set(id, flag, sniftab) (sniftab[id].flags |= flag)
-#define do_clr(id, flag) (sniftab2[id].flags &= ~flag)
+#define do_clr(id, flag, sniftab) (sniftab[id].flags &= ~flag)
 
 /* time defaults */
 
@@ -266,7 +266,7 @@ int handle_timeo(int fd, long currcms, struct snif *sniftab){
 						if (is_set(i, UPDATE, sniftab)){
 							print_snifline(i, sniftab);
 							sniftab[i].hold = currcms + hold;
-							do_clr(i, UPDATE);
+							do_clr(i, UPDATE, sniftab);
 						}
 						else
 							if ((sniftab[i].hold) && (sniftab[i].hold < currcms)) {
