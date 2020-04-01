@@ -63,7 +63,6 @@
 
 /* flags */
 
-#define ENABLE  1 /* by filter or user */
 #define DISPLAY 2 /* is on the screen */
 
 /* flags testing & setting */
@@ -111,10 +110,6 @@ int main()
 
 int init(struct snif *sniftab, char* interface, int *s, int filter_id_only)
 {
-	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
-	{
-		do_set(i, ENABLE, sniftab);
-	}
 	if (strlen(interface) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", interface);
 		return 1;
@@ -147,8 +142,7 @@ int init(struct snif *sniftab, char* interface, int *s, int filter_id_only)
 	}
 
 	for (int i=0; i < 2048 ;i++) /* initial BCM setup */
-		if (is_set(i, ENABLE, sniftab))
-			rx_setup(*s, i, filter_id_only);
+		rx_setup(*s, i, filter_id_only);
 	return 0;
 }
 
@@ -234,7 +228,7 @@ int handle_timeo(int fd, struct snif *sniftab){
 
 	for (int i=0; i < 2048; i++) {
 
-		if (is_set(i, ENABLE, sniftab) && is_set(i, DISPLAY, sniftab)) {
+		if (is_set(i, DISPLAY, sniftab)) {
 			print_snifline(i, sniftab);
 			do_clr(i, DISPLAY, sniftab);
 		}
