@@ -151,7 +151,8 @@ int main()
 	struct timeval tv;
 	tv.tv_sec = tv.tv_usec = 0;
 	long lastcms = 0;
-	recv_loop(s,loop, sniftab, start_tv, tv, &lastcms);
+	while(!recv_loop(s,loop, sniftab, start_tv, tv, &lastcms));
+	close(s);
 	return 0;
 }
 
@@ -160,29 +161,24 @@ int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, s
 	fd_set rdfs;
 	struct timeval timeo;
 	
-	while (1) {
+	FD_ZERO(&rdfs);
+	FD_SET(0, &rdfs);
+	FD_SET(s, &rdfs);
 
-		FD_ZERO(&rdfs);
-		FD_SET(0, &rdfs);
-		FD_SET(s, &rdfs);
+	timeo.tv_sec  = 0;
+	timeo.tv_usec = 100000 * loop;
 
-		timeo.tv_sec  = 0;
-		timeo.tv_usec = 100000 * loop;
+	if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {return -1;}
 
-		if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {return -1;}
+	gettimeofday(&tv, NULL);
+	long currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
-		gettimeofday(&tv, NULL);
-		long currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
-
-		if(FD_ISSET(s, &rdfs) && !handle_bcm(s, sniftab)){return -1;}
-
-		if (currcms - *lastcms >= loop) {
-			if(!handle_timeo(s, sniftab)){return -1;}
-			*lastcms = currcms;
-		}
+	if(FD_ISSET(s, &rdfs) && !handle_bcm(s, sniftab)){return -1;}
+	if (currcms - *lastcms >= loop) {
+		if(!handle_timeo(s, sniftab)){return -1;}
+		*lastcms = currcms;
 	}
 
-	close(s);
 	return 0;
 }
 
