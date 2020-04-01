@@ -98,17 +98,13 @@ struct snif {
 	struct can_frame current;
 };
 
-static long hold = HOLD;
-static long loop = LOOP;
-static char *interface;
-
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, long currcms, struct snif *sniftab);
 
 int main()
 {
-	char *device_name = "vcan0";
+	char *interface = "vcan0";
 	struct snif sniftab[2048];
 	memset(&sniftab,0x00,sizeof(sniftab));
 
@@ -127,12 +123,10 @@ int main()
 	for (i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 		do_set(i, ENABLE, sniftab);
 
-	if (strlen(device_name) >= IFNAMSIZ) {
-		printf("name of CAN device '%s' is too long!\n", device_name);
+	if (strlen(interface) >= IFNAMSIZ) {
+		printf("name of CAN device '%s' is too long!\n", interface);
 		return 1;
 	}
-
-	interface = device_name;
 
 	if ((s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
 		perror("socket");
@@ -141,8 +135,8 @@ int main()
 
 	addr.can_family = AF_CAN;
 
-	if (strcmp(ANYDEV, device_name)) {
-		strcpy(ifr.ifr_name, device_name);
+	if (strcmp(ANYDEV, interface)) {
+		strcpy(ifr.ifr_name, interface);
 		if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
 			perror("SIOCGIFINDEX");
 			exit(1);
@@ -171,7 +165,7 @@ int main()
 		FD_SET(s, &rdfs);
 
 		timeo.tv_sec  = 0;
-		timeo.tv_usec = 100000 * loop;
+		timeo.tv_usec = 100000 * LOOP;
 
 		if ((ret = select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
 			//perror("select");
@@ -187,7 +181,7 @@ int main()
 			exit(-1);
 			}
 
-		if (currcms - lastcms >= loop) {
+		if (currcms - lastcms >= LOOP) {
 			if(!handle_timeo(s, currcms, sniftab))
 			{
 			exit(-1);
@@ -266,7 +260,7 @@ int handle_timeo(int fd, long currcms, struct snif *sniftab){
 
 						if (is_set(i, UPDATE, sniftab)){
 							print_snifline(i, sniftab);
-							sniftab[i].hold = currcms + hold;
+							sniftab[i].hold = currcms + HOLD;
 							do_clr(i, UPDATE, sniftab);
 						}
 						else
