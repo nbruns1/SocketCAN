@@ -107,29 +107,8 @@ int main()
 	int filter_id_only = 0;
 	long loop = 2;
 	int s;
-	
-	struct sockaddr_can addr;
-	struct ifreq ifr;
 
 	if(init(sniftab,interface,&s)){return 1;}
-
-	addr.can_family = AF_CAN;
-
-	if (strcmp(ANYDEV, interface)) {
-		strcpy(ifr.ifr_name, interface);
-		if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
-			perror("SIOCGIFINDEX");
-			exit(1);
-		}
-		addr.can_ifindex = ifr.ifr_ifindex;
-	}
-	else
-		addr.can_ifindex = 0; /* any can interface */
-
-	if (connect(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("connect");
-		return 1;
-	}
 
 	for (int i=0; i < 2048 ;i++) /* initial BCM setup */
 		if (is_set(i, ENABLE, sniftab))
@@ -158,6 +137,27 @@ int init(struct snif *sniftab, char* interface, int *s)
 
 	if ((*s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
 		perror("socket");
+		return 1;
+	}
+
+	struct sockaddr_can addr;
+	struct ifreq ifr;
+
+	addr.can_family = AF_CAN;
+
+	if (strcmp(ANYDEV, interface)) {
+		strcpy(ifr.ifr_name, interface);
+		if (ioctl(*s, SIOCGIFINDEX, &ifr) < 0) {
+			perror("SIOCGIFINDEX");
+			exit(1);
+		}
+		addr.can_ifindex = ifr.ifr_ifindex;
+	}
+	else
+		addr.can_ifindex = 0; /* any can interface */
+
+	if (connect(*s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		perror("connect");
 		return 1;
 	}
 	return 0;
