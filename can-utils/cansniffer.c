@@ -108,7 +108,7 @@ static char *interface;
 
 void rx_setup (int fd, int id);
 void print_snifline(int id, struct snif *sniftab);
-int handle_bcm(int fd, long currcms);
+int handle_bcm(int fd, long currcms, struct snif *sniftab);
 
 int main()
 {
@@ -181,7 +181,7 @@ int main()
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
-			if(!handle_bcm(s, currcms))
+			if(!handle_bcm(s, currcms, sniftab2))
 			{
 			exit(-1);
 			}
@@ -223,7 +223,7 @@ void rx_setup (int fd, int id){
 		perror("write");
 };
 
-int handle_bcm(int fd, long currcms){
+int handle_bcm(int fd, long currcms, struct snif *sniftab){
 
 	int nbytes, id;
 
@@ -245,7 +245,7 @@ int handle_bcm(int fd, long currcms){
 		return 0; /* quit */
 	}
 
-	sniftab2[id].current = bmsg.frame;
+	sniftab[id].current = bmsg.frame;
 
 	do_set(id, DISPLAY);
 	do_set(id, UPDATE);
