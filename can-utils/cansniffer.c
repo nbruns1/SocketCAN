@@ -97,7 +97,7 @@ struct snif {
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, struct snif *sniftab);
-int recv_loop(int s, long loop, struct snif *sniftab);
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv);
 
 int main()
 {
@@ -146,15 +146,16 @@ int main()
 		if (is_set(i, ENABLE, sniftab))
 			rx_setup(s, i, filter_id_only);
 
-	recv_loop(s,loop, sniftab);
+	struct timeval start_tv;
+	gettimeofday(&start_tv, NULL);
+	recv_loop(s,loop, sniftab, start_tv);
 	return 0;
 }
 
-int recv_loop(int s, long loop, struct snif *sniftab)
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv)
 {
 	fd_set rdfs;
-	struct timeval timeo, start_tv, tv;
-	gettimeofday(&start_tv, NULL);
+	struct timeval timeo, tv;
 	tv.tv_sec = tv.tv_usec = 0;
 
 	long currcms = 0;
