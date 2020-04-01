@@ -111,12 +111,7 @@ int main()
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 
-	if(init(sniftab,interface)){return 1;}
-
-	if ((s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
-		perror("socket");
-		return 1;
-	}
+	if(init(sniftab,interface,&s)){return 1;}
 
 	addr.can_family = AF_CAN;
 
@@ -150,7 +145,7 @@ int main()
 	return 0;
 }
 
-int init(struct snif *sniftab, char* interface)
+int init(struct snif *sniftab, char* interface, int *s)
 {
 	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 	{
@@ -158,6 +153,11 @@ int init(struct snif *sniftab, char* interface)
 	}
 	if (strlen(interface) >= IFNAMSIZ) {
 		printf("name of CAN device '%s' is too long!\n", interface);
+		return 1;
+	}
+
+	if ((*s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
+		perror("socket");
 		return 1;
 	}
 	return 0;
