@@ -61,17 +61,6 @@
 
 #define ANYDEV   "any"
 
-/* flags */
-
-#define DISPLAY 2 /* is on the screen */
-
-/* flags testing & setting */
-
-#define is_set(id, flag, sniftab) (sniftab[id].flags & flag)
-
-#define do_set(id, flag, sniftab) (sniftab[id].flags |= flag)
-#define do_clr(id, flag, sniftab) (sniftab[id].flags &= ~flag)
-
 struct snif {
 	int flags;
 	struct can_frame current;
@@ -219,18 +208,18 @@ int handle_bcm(int fd, struct snif *sniftab){
 	}
 
 	sniftab[id].current = bmsg.frame;
-	do_set(id, DISPLAY, sniftab);
+	sniftab[id].flags = 1;
 	
 	return 1; /* ok */
 };
 
 int handle_timeo(int fd, struct snif *sniftab){
 
-	for (int i=0; i < 2048; i++) {
+	for (int id=0; id < 2048; id++) {
 
-		if (is_set(i, DISPLAY, sniftab)) {
-			print_snifline(i, sniftab);
-			do_clr(i, DISPLAY, sniftab);
+		if (sniftab[id].flags) {
+			print_snifline(id, sniftab);
+			sniftab[id].flags = 0;
 		}
 	}
 
