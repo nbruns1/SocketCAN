@@ -97,6 +97,7 @@ struct snif {
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, struct snif *sniftab);
+int recv_loop(int s, long loop, struct snif *sniftab);
 
 int main()
 {
@@ -105,9 +106,8 @@ int main()
 	memset(&sniftab,0x00,sizeof(sniftab));
 	int filter_id_only = 0;
 	long loop = 2;
-	fd_set rdfs;
 	int s;
-	int ret;
+	
 	
 	struct sockaddr_can addr;
 	struct ifreq ifr;
@@ -148,6 +148,13 @@ int main()
 		if (is_set(i, ENABLE, sniftab))
 			rx_setup(s, i, filter_id_only);
 
+	recv_loop(s,loop, sniftab);
+	return 0;
+}
+
+int recv_loop(int s, long loop, struct snif *sniftab)
+{
+	fd_set rdfs;
 	struct timeval timeo, start_tv, tv;
 	gettimeofday(&start_tv, NULL);
 	tv.tv_sec = tv.tv_usec = 0;
@@ -163,7 +170,7 @@ int main()
 		timeo.tv_sec  = 0;
 		timeo.tv_usec = 100000 * loop;
 
-		if ((ret = select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
+		if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
 			//perror("select");
 			exit(-1);
 		}
@@ -187,7 +194,6 @@ int main()
 	}
 
 	close(s);
-	return 0;
 }
 
 void rx_setup (int fd, int id, int filter_id_only){
