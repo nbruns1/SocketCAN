@@ -113,11 +113,6 @@ int main()
 
 	if(init(sniftab,interface)){return 1;}
 
-	if (strlen(interface) >= IFNAMSIZ) {
-		printf("name of CAN device '%s' is too long!\n", interface);
-		return 1;
-	}
-
 	if ((s = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
 		perror("socket");
 		return 1;
@@ -160,6 +155,10 @@ int init(struct snif *sniftab, char* interface)
 	for (int i=0; i < 2048 ;i++) /* default: check all CAN-IDs */
 	{
 		do_set(i, ENABLE, sniftab);
+	}
+	if (strlen(interface) >= IFNAMSIZ) {
+		printf("name of CAN device '%s' is too long!\n", interface);
+		return 1;
 	}
 	return 0;
 }
