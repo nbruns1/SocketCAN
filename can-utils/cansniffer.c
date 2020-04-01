@@ -98,13 +98,11 @@ struct snif {
 	struct can_frame current;
 };
 
-
-//static int filter_id_only;
 static long hold = HOLD;
 static long loop = LOOP;
 static char *interface;
 
-void rx_setup (int fd, int id);
+void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(int id, struct snif *sniftab);
 int handle_bcm(int fd, long currcms, struct snif *sniftab);
 
@@ -113,6 +111,9 @@ int main()
 	char *device_name = "vcan0";
 	struct snif sniftab[2048];
 	memset(&sniftab,0x00,sizeof(sniftab));
+
+	int filter_id_only = 0;
+
 	fd_set rdfs;
 	int s;
 	long currcms = 0;
@@ -158,7 +159,7 @@ int main()
 
 	for (i=0; i < 2048 ;i++) /* initial BCM setup */
 		if (is_set(i, ENABLE, sniftab))
-			rx_setup(s, i);
+			rx_setup(s, i, filter_id_only);
 
 	gettimeofday(&start_tv, NULL);
 	tv.tv_sec = tv.tv_usec = 0;
@@ -199,7 +200,7 @@ int main()
 	return 0;
 }
 
-void rx_setup (int fd, int id){
+void rx_setup (int fd, int id, int filter_id_only){
 
 	struct {
 		struct bcm_msg_head msg_head;
