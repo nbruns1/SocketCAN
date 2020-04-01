@@ -67,7 +67,7 @@ struct snif {
 };
 
 void rx_setup (int fd, int id, int filter_id_only);
-void print_snifline(struct snif sniftab);
+void print_snifline(struct can_frame current);
 int handle_bcm(int fd, struct snif *sniftab);
 int handle_timeo(int fd, struct snif *sniftab);
 int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms);
@@ -218,7 +218,7 @@ int handle_timeo(int fd, struct snif *sniftab){
 	for (int id=0; id < 2048; id++) {
 
 		if (sniftab[id].flags) {
-			print_snifline(sniftab[id]);
+			print_snifline(sniftab[id].current);
 			sniftab[id].flags = 0;
 		}
 	}
@@ -227,12 +227,12 @@ int handle_timeo(int fd, struct snif *sniftab){
 
 };
 
-void print_snifline(struct snif sniftab){
-		for (int i=0; i<sniftab.current.can_dlc; i++)
-			printf("%02X ", sniftab.current.data[i]);
+void print_snifline(struct can_frame current){
+		for (int i=0; i<current.can_dlc; i++)
+			printf("%02X ", current.data[i]);
 
-		if (sniftab.current.can_dlc < 8)
-			printf("%*s", (8 - sniftab.current.can_dlc) * 3, "");
+		if (current.can_dlc < 8)
+			printf("%*s", (8 - current.can_dlc) * 3, "");
 
 	putchar('\n');
 };
