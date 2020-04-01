@@ -168,32 +168,24 @@ int recv_loop(int s, long loop, struct snif *sniftab)
 		timeo.tv_sec  = 0;
 		timeo.tv_usec = 100000 * loop;
 
-		if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {
-			//perror("select");
-			exit(-1);
-		}
+		if ((select(s+1, &rdfs, NULL, NULL, &timeo)) < 0) {return -1;}
 
 		gettimeofday(&tv, NULL);
 		currcms = (tv.tv_sec - start_tv.tv_sec) * 10 + (tv.tv_usec / 100000);
 
 		if (FD_ISSET(s, &rdfs))
 		{
-			if(!handle_bcm(s, sniftab))
-			{
-			exit(-1);
-			}
+			if(!handle_bcm(s, sniftab)){return -1;}
 		}
 
 		if (currcms - lastcms >= loop) {
-			if(!handle_timeo(s, sniftab))
-			{
-			exit(-1);
-			}
+			if(!handle_timeo(s, sniftab)){return -1;}
 			lastcms = currcms;
 		}
 	}
 
 	close(s);
+	return 0;
 }
 
 void rx_setup (int fd, int id, int filter_id_only){
