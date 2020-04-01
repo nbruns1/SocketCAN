@@ -69,8 +69,9 @@ struct snif {
 void rx_setup (int fd, int id, int filter_id_only);
 void print_snifline(struct can_frame current);
 int handle_bcm(int fd, struct snif *sniftab);
-int handle_timeo(int fd, struct snif *sniftab);
-int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms);
+//int handle_timeo(int fd, struct snif *sniftab);
+int handle_timeo(int fd, struct snif *sniftab, void (*out)(struct can_frame current));
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms, void (*out)(struct can_frame current));
 int init(struct snif *sniftab, char* interface, int *s, int filter_id_only);
 
 int main()
@@ -92,7 +93,7 @@ int main()
 	tv.tv_sec = tv.tv_usec = 0;
 	long lastcms = 0;
 
-	while(!recv_loop(s,loop, sniftab, start_tv, tv, &lastcms));
+	while(!recv_loop(s,loop, sniftab, start_tv, tv, &lastcms, &print_snifline));
 	close(s);
 	return 0;
 }
@@ -135,7 +136,7 @@ int init(struct snif *sniftab, char* interface, int *s, int filter_id_only)
 	return 0;
 }
 
-int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms)
+int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, struct timeval tv, long *lastcms, void (*out)(struct can_frame current))
 {
 	fd_set rdfs;
 	struct timeval timeo;
@@ -154,7 +155,7 @@ int recv_loop(int s, long loop, struct snif *sniftab, struct timeval start_tv, s
 
 	if(FD_ISSET(s, &rdfs) && !handle_bcm(s, sniftab)){return -1;}
 	if (currcms - *lastcms >= loop) {
-		if(!handle_timeo(s, sniftab)){return -1;}
+		if(!handle_timeo(s, sniftab, out)){return -1;}
 		*lastcms = currcms;
 	}
 
@@ -213,12 +214,12 @@ int handle_bcm(int fd, struct snif *sniftab){
 	return 1; /* ok */
 };
 
-int handle_timeo(int fd, struct snif *sniftab){
+int handle_timeo(int fd, struct snif *sniftab, void (*out)(struct can_frame current)){
 
 	for (int id=0; id < 2048; id++) {
 
 		if (sniftab[id].flags) {
-			print_snifline(sniftab[id].current);
+			out(sniftab[id].current);
 			sniftab[id].flags = 0;
 		}
 	}
