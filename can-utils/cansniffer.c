@@ -188,7 +188,7 @@ int main()
 			}
 
 		if (currcms - lastcms >= loop) {
-			if(!handle_timeo(s, currcms, sniftab2))
+			if(!handle_timeo(s, currcms, sniftab))
 			{
 			exit(-1);
 			}
